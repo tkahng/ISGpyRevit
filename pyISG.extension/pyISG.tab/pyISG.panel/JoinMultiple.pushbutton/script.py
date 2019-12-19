@@ -39,13 +39,13 @@ if len(selected_ids) > 0:
     t.Start(__title__)
     for x in selected_ids:
         for y in selected_ids:
-            JoinGeometryUtils.JoinGeometry(doc,x,y)
-            c+=1
-            # try:
-            #     JoinGeometryUtils.JoinGeometry(doc,x,y)
-            #     c+=1
-            # except:
-            #     pass
+            # JoinGeometryUtils.JoinGeometry(doc,x,y)
+            # c+=1
+            try:
+                JoinGeometryUtils.JoinGeometry(doc,x,y)
+                c+=1
+            except:
+                pass
     t.Commit()
 
 TaskDialog.Show(__title__,"%d pairs of elements unjoined" % c)
