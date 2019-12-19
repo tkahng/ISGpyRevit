@@ -39,10 +39,8 @@ if len(selected_ids) > 0:
     t.Start(__title__)
     for x in selected_ids:
         for y in selected_ids:
-            # JoinGeometryUtils.JoinGeometry(doc,x,y)
-            # c+=1
             try:
-                JoinGeometryUtils.JoinGeometry(doc,x,y)
+                JoinGeometryUtils.JoinGeometry(doc,doc.GetElement(x),doc.GetElement(y))
                 c+=1
             except:
                 pass
