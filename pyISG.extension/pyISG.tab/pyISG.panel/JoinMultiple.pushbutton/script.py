@@ -1,140 +1,51 @@
-# coding: utf8
-from Autodesk.Revit.DB import Reference, ReferenceArray, XYZ, Line, Options, FamilyInstance, Point, \
-    FamilyInstanceReferenceType, Edge
-from Autodesk.Revit import Exceptions
-from Autodesk.Revit.UI.Selection import ObjectType, ISelectionFilter
+# -*- coding: utf-8 -*-
+__title__ = 'Unjoin many'
 
-from pyrevit import script, forms
+__doc__ = """Unjoins all selected geometry. (undo Join command)
+Useful to get rid of warnings "Highlighted Elements are Joined but do not Intersect"
+ Context: Some elements should be selected
 
-import rpw
-from rpw import revit
+Разъединяет все выбранные элементы. (отменяет команду Соединить)
+Полезно в случаях, когда нужно избавиться от предупреждения "Элементы соединены, но не пересекаются"
+Контекст: Должно быть выбрано несколько элементов"""
 
-__doc__ = """"
-Quick dimension selected elements
-Warning : Full support for line base elements only (eg. pipes, walls, lines, grids). 
-Don't currently fully work with family instance.
-"""
-__title__ = "JoinMultiple"
-__author__ = "Cyril Waechter"
+__helpurl__ = "https://apex-project.github.io/pyApex/help#unjoin-many"
 
-doc = revit.doc
-uidoc = revit.uidoc
-logger = script.get_logger()
+__context__ = 'Selection'
 
-selection = [doc.GetElement(id) for id in uidoc.Selection.GetElementIds()]
+try:
+    from pyrevit.versionmgr import PYREVIT_VERSION
+except:
+    from pyrevit import versionmgr
+    PYREVIT_VERSION = versionmgr.get_pyrevit_version()
 
+pyRevitNewer44 = PYREVIT_VERSION.major >=4 and PYREVIT_VERSION.minor >=5
 
-class CustomFilter(ISelectionFilter):
-    def AllowElement(self, elem):
-        return True
-
-    def AllowReference(self, reference, position):
-        return True
-
-
-class CurveLineFilter(ISelectionFilter):
-    def AllowElement(self, elem):
-        try:
-            if isinstance(elem.Location.Curve, Line):
-                return True
-            else:
-                return False
-        except AttributeError:
-            return False
-
-    def AllowReference(self, reference, position):
-        try:
-            if isinstance(doc.GetElement(reference).Location.Curve, Line):
-                return True
-            else:
-                return False
-        except AttributeError:
-            return False
-
-
-if not selection:
-    try:
-        selection = [doc.GetElement(reference) for reference in uidoc.Selection.PickObjects(
-            ObjectType.Element, CustomFilter(), "Pick")]
-    except Exceptions.OperationCanceledException:
-        import sys
-        sys.exit()
-
-# All reference in reference will be dimensioned
-reference_array = ReferenceArray()
-
-options = Options(ComputeReferences=True, IncludeNonVisibleObjects=True)
-
-
-def family_origin_reference(family_instance):
-    family_origin = family_instance.Location.Point
-    for geom in family_instance.get_Geometry(options):
-        if isinstance(geom, Point) and geom.Coord == family_origin:
-            return geom.Reference
-    else:
-        try:
-            for type in FamilyInstanceReferenceType.GetValues(FamilyInstanceReferenceType):
-                for reference in family_instance.GetReferences(type):
-                    return reference
-                    geom = family_instance.GetGeometryObjectFromReference(reference)
-                    if isinstance(geom, Point) and geom.Coord == family_instance.Location.Point:
-                        return reference
-
-                    if isinstance(geom, Edge):
-                        curve = geom.AsCurve()
-                        if (
-                                isinstance(curve, Line) and
-                                curve.Direction.CrossProduct(direction).IsZeroLength()
-                        ):
-                            logger.debug("{} {}".format(geom.Origin, geom.Direction))
-                            return reference
-        except NameError:
-            raise
-            logger.info("Some part of the function (FamilyInstanceReferenceType) is only available from Revit 2018")
-
-
-def get_reference(element):
-    if isinstance(element, FamilyInstance):
-        return family_origin_reference(element)
-    else:
-        try:
-            el_curve = element.Location.Curve
-        except AttributeError:
-            el_curve = element.Curve
-        if el_curve.Direction.CrossProduct(direction).IsAlmostEqualTo(XYZ()):
-            return Reference(element)
-        else:
-            for geom in element.get_Geometry(options):
-                for edge in geom.Edges:
-                    curve = edge.AsCurve()
-                    if isinstance(curve, Line):
-                        el_origin = el_curve.Origin
-                        ed_origin = curve.Origin
-                        if (el_origin.X, el_origin.Y) == (ed_origin.X, ed_origin.Y):
-                            if curve.GetEndPoint(0) - pt1 < curve.GetEndPoint(1) - pt1:
-                                return edge.GetEndPointReference(0)
-                            else:
-                                return edge.GetEndPointReference(1)
-
-
-for element in selection:
-    try:
-        direction = element.Location.Curve.Direction
-        break
-    except AttributeError:
-        continue
+if pyRevitNewer44:
+    from pyrevit.revit import doc, selection
+    selection = selection.get_selection()
 else:
-    with forms.WarningBar(title="Unable to find a lead direction. Please pick a parallel line."):
-        ref = uidoc.Selection.PickObject(ObjectType.Element, CurveLineFilter())
-        direction = doc.GetElement(ref).Location.Curve.Direction
+    from revitutils import doc, selection
 
-pt1 = uidoc.Selection.PickPoint()  # type: XYZ
-pt2 = pt1 + XYZ(-direction.Y, direction.X, 0)
-line = Line.CreateBound(pt1,pt2)
+selected_ids = selection.element_ids
 
-for element in selection:
-    reference_array.Append(get_reference(element))
+from Autodesk.Revit.DB import BuiltInCategory, ElementId, JoinGeometryUtils, Transaction
+from Autodesk.Revit.UI import TaskDialog
 
-with rpw.db.Transaction("QuickDimensionPipe"):
-    logger.debug([reference for reference in reference_array])
-    dim = doc.Create.NewDimension(doc.ActiveView, line, reference_array)
+c = 0
+
+if len(selected_ids) > 0:
+    t = Transaction(doc)
+    t.Start(__title__)
+    for x in selected_ids:
+        for y in selected_ids:
+            JoinGeometryUtils.JoinGeometry(doc,x,y)
+            c+=1
+            # try:
+            #     JoinGeometryUtils.JoinGeometry(doc,x,y)
+            #     c+=1
+            # except:
+            #     pass
+    t.Commit()
+
+TaskDialog.Show(__title__,"%d pairs of elements unjoined" % c)
