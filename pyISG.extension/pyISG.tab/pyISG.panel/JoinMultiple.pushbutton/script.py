@@ -32,6 +32,26 @@ selected_ids = selection.element_ids
 from Autodesk.Revit.DB import BuiltInCategory, ElementId, JoinGeometryUtils, Transaction
 from Autodesk.Revit.UI import TaskDialog
 
+def overlap1D(a1, a2, b1, b2):
+  if a2>=b1 and b2>=a1:
+    return True
+  return False
+  
+def bbIntersect(bbA, bbB):
+  return overlap1D(bbA.Min.X,bbA.Max.X,bbB.Min.X,bbB.Max.X) and overlap1D(bbA.Min.Y,bbA.Max.Y,bbB.Min.Y,bbB.Max.Y) and overlap1D(bbA.Min.Z,bbA.Max.Z,bbB.Min.Z,bbB.Max.Z)
+
+output = []
+
+for a in listA:
+  bbA = a.get_BoundingBox(None)
+  if not bbA is None:
+    for b in listB:
+      bbB = b.get_BoundingBox(None)
+      if not bbB is None:
+        if bbIntersect(bbA,bbB):
+          output.append([a,b])
+
+
 c = 0
 
 if len(selected_ids) > 0:
