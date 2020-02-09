@@ -5,6 +5,7 @@
     "python.autoComplete.extraPaths": ["D:\\GitHub\\ironpython-stubs\\release\\stubs.min", 
         "E:\\GitHub\\ironpython-stubs\\release\\stubs.min",
         "C:\\Users\\Tchunoo\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib",
+        "C:\\Users\\인시공현장PC\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib",
         "C:\\Program Files\\Rhino 6\\Plug-ins\\IronPython\\Lib",
         "C:\\Users\\인시공현장PC\\AppData\\Roaming\\McNeel\\Rhinoceros\\6.0\\Plug-ins\\IronPython (814d908a-e25c-493d-97e9-ee3861957f49)\\settings\\lib",
         "C:\\Users\\인시공현장PC\\AppData\\Roaming\\McNeel\\Rhinoceros\\6.0\\scripts",
