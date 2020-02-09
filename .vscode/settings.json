@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "C:\\Miniconda3\\envs\\clr\\python.exe",
+    "python.pythonPath": "C:\\Python27amd64\\python.exe",
     "python.linting.enabled": false,
     // python autocomplete extra path
     "python.autoComplete.extraPaths": ["D:\\GitHub\\ironpython-stubs\\release\\stubs.min", 
