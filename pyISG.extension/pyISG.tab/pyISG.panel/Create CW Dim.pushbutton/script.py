@@ -62,7 +62,18 @@ def get_section_viewfamily():
         DB.ElementTypeGroup.ViewTypeSection
         )
 
-def create_dim(wall, line, view):
+
+
+
+doc_section_type = get_section_viewfamily()
+
+with revit.Transaction("Create Parallel Section"):
+    for selected_wall in get_walls():
+        dimline = selected_wall.Location.Curve
+        create_section(selected_wall, doc_section_type)
+
+
+def createdim(wall, line, view):
     line = wall.Location.Curve
     lineDir = line.GetEndPoint(1) - line.GetEndPoint(0)
 
@@ -100,12 +111,3 @@ def create_dim(wall, line, view):
 
     #Assign your output to the OUT variable.
     # OUT = 0
-
-
-doc_section_type = get_section_viewfamily()
-
-with revit.Transaction("Create Parallel Section"):
-    for selected_wall in get_walls():
-        dimline = selected_wall.Location.Curve
-        sec = create_section(selected_wall, doc_section_type)
-        create_dim(selected_wall, dimline, sec)
