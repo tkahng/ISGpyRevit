@@ -12,39 +12,49 @@ output = script.get_output()
 
 def create_section(wall, section_type):
     # ensure wall is straight
-    line = wall.Location.Curve
+    curve = wall.Location.Curve
     # determine section box
-    p = line.GetEndPoint(0)
-    q = line.GetEndPoint(1)
-    v = q - p
+    curve_transform = curve.ComputeDerivatives(0.5, True)
 
-    bb = wall.get_BoundingBox(None)
-    minZ = bb.Min.Z
-    maxZ = bb.Max.Z
-
-    w = v.GetLength()
-    # h = maxZ - minZ
-    # d = wall.WallType.Width
-    offset = 0.1 * w
-
-    bbox_min = DB.XYZ(-w, minZ - offset, -offset)
-    bbox_max = DB.XYZ(w, maxZ + offset, 0)
-
-    midpoint = p + 0.5 * v
-    walldir = v.Normalize()
+    origin = curve_transform.Origin
+    wall_direction = curve_transform.BasisX.Normalize()  # type: XYZ
     up = DB.XYZ.BasisZ
-    viewdir = walldir.CrossProduct(up)
+    section_direction = wall_direction.CrossProduct(up)
+    right = up.CrossProduct(section_direction)
 
-    t = DB.Transform.Identity
-    t.Origin = midpoint
-    t.BasisX = walldir
-    t.BasisY = up
-    t.BasisZ = viewdir
+    transform = DB.Transform.Identity
+    transform.Origin = origin
+    transform.BasisX = wall_direction
+    transform.BasisY = up
+    transform.BasisZ = section_direction
 
     section_box = DB.BoundingBoxXYZ()
-    section_box.Transform = t
-    section_box.Min = bbox_min
-    section_box.Max = bbox_max
+    section_box.Transform = transform
+
+    # Try to retrieve element height, width and lenght
+    try:
+        el_depth =  wall.WallType.Width
+    except AttributeError:
+        el_depth = 2
+
+    el_width = curve.Length
+
+    el_bounding_box = wall.get_BoundingBox(None)
+    z_min = el_bounding_box.Min.Z
+    z_max = el_bounding_box.Max.Z
+    el_height = z_max - z_min
+
+    depth_offset = 1
+    height_offset = 1
+    width_offset = 1
+
+    # Set BoundingBoxXYZ's boundaries
+    section_box.Min = DB.XYZ(-el_width / 2 - width_offset,
+                          -height_offset,
+                          -el_depth / 2 - depth_offset)
+    section_box.Max = DB.XYZ(el_width / 2 + width_offset,
+                          el_height + height_offset,
+                          el_depth / 2 + depth_offset)
 
     return DB.ViewSection.CreateSection(revit.doc, section_type, section_box)
 
