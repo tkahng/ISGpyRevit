@@ -45,15 +45,19 @@ def create_section(wall, section_type):
     el_height = z_max - z_min
 
     depth_offset = 1
-    height_offset = 1
+    height_offset = 1   
     width_offset = 1
+
+    # Get Wall Offset Params
+    base_offset = wall.Parameter[DB.BuiltInParameter.WALL_BASE_OFFSET].AsDouble()
+
 
     # Set BoundingBoxXYZ's boundaries
     section_box.Min = DB.XYZ(-el_width / 2 - width_offset,
-                          -height_offset,
+                          -height_offset + base_offset,
                           -el_depth / 2 - depth_offset)
     section_box.Max = DB.XYZ(el_width / 2 + width_offset,
-                          el_height + height_offset,
+                          el_height + height_offset + base_offset,
                           el_depth / 2 + depth_offset)
 
     return DB.ViewSection.CreateSection(revit.doc, section_type, section_box)
