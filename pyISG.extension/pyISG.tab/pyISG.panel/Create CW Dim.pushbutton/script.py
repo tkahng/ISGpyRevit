@@ -17,7 +17,9 @@ def isParallel(v1,v2):
     return v1.CrossProduct(v2).IsAlmostEqualTo(DB.XYZ(0,0,0))
 
 def create_dim(wall, line, view):
-    line = wall.Location.Curve
+
+    t = DB.Transform.CreateTranslation(DB.XYZ(0,0,-1))
+    line = wall.Location.Curve.CreateTransformed(t)
     lineDir = line.GetEndPoint(1) - line.GetEndPoint(0)
 
     refArray = DB.ReferenceArray()
