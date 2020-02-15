@@ -48,9 +48,11 @@ def create_section(wall, section_type):
     height_offset = 1   
     width_offset = 1
 
-    # Get Wall Offset Params
-    base_offset = wall.Parameter[DB.BuiltInParameter.WALL_BASE_OFFSET].AsDouble()
-
+    # Get Wall Offset Params if Element is Wall
+    try:
+        base_offset = wall.Parameter[DB.BuiltInParameter.WALL_BASE_OFFSET].AsDouble()
+    except AttributeError:
+        base_offset = 0
 
     # Set BoundingBoxXYZ's boundaries
     section_box.Min = DB.XYZ(-el_width / 2 - width_offset,
