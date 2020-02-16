@@ -3,14 +3,23 @@
 from pyrevit import revit, DB
 # from pyrevit import script
 
-width = 701.0
-height = 554.0
+def mmToFoot(mm):
+    inchToMm = 25.4
+    footToMm = 12 * inchToMm
+    return mm / footToMm
+
+def applyViewScale(mm):
+    return mmToFoot(mm) * revit.active_view.Scale
+    
+
+width = applyViewScale(701.0)
+height = applyViewScale(554.0)
 colCount = 3
 rowCount = 3
 rowHeight = height/rowCount
-fieldColWidth = 50.0
+fieldColWidth = applyViewScale(50.0)
 fieldRowCount = 4
-fieldRowHeight = 10.0
+fieldRowHeight = applyViewScale(10.0)
 colWidth = (width-fieldColWidth)/colCount
 
 def frange(start, count, step=1.0):
