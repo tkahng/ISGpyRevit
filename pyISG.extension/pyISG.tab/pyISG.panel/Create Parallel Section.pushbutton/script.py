@@ -10,16 +10,17 @@ logger = script.get_logger()
 output = script.get_output()
 
 
-def create_section(wall, section_type):
+def create_section(el, section_type):
     # ensure wall is straight
-    curve = wall.Location.Curve
+    # curve = wall.Location.Curve
     # determine section box
-    curve_transform = curve.ComputeDerivatives(0.5, True)
-
-    origin = curve_transform.Origin
-    wall_direction = curve_transform.BasisX.Normalize()  # type: XYZ
+    # curve_transform = curve.ComputeDerivatives(0.5, True)
+    
+    origin = el.Location.Point
+    # wall_direction = curve_transform.BasisX.Normalize()  # type: XYZ
+    wall_direction = el.FacingOrientation
     up = DB.XYZ.BasisZ
-    section_direction = wall_direction.CrossProduct(up)
+    section_direction = el.FacingOrientation.CrossProduct(up)
     right = up.CrossProduct(section_direction)
 
     transform = DB.Transform.Identity
@@ -68,6 +69,10 @@ def create_section(wall, section_type):
 def get_walls():
     """retrieve wall from selection set"""
     return [x for x in revit.get_selection() if isinstance(x, DB.Wall)]
+
+def get_window():
+    """retrieve wall from selection set"""
+    return [x for x in revit.get_selection() if isinstance(x, DB.FamilyInstance)]
 
 
 def get_section_viewfamily():
