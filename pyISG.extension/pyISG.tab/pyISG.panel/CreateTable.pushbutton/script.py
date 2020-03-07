@@ -1,6 +1,8 @@
 """Create Table"""
 
 from pyrevit import revit, DB
+from rpw.ui.forms import Button, ComboBox, FlexForm, CheckBox, Label, TextBox, Separator
+# import os
 # from pyrevit import script
 
 def mmToFoot(mm):
@@ -11,15 +13,35 @@ def mmToFoot(mm):
 def applyViewScale(mm):
     return mmToFoot(mm) * revit.active_view.Scale
     
+components = [
+            Label('width'),
+            TextBox('width', default='701.0'),
+            Label('height'),
+            TextBox('height', default='554.0'),
+            Label('colCount'),
+            TextBox('colCount', default='3'),
+            Label('rowCount'),
+            TextBox('rowCount', default='3'),
+            Label('fieldColWidth'),
+            TextBox('fieldColWidth', default='50.0'),
+            Label('fieldRowCount'),
+            TextBox('fieldRowCount', default='4'),
+            Label('fieldRowHeight'),
+            TextBox('fieldRowHeight', default='10.0'),
+            Separator(),
+            Button('Create foundation')]
 
-width = applyViewScale(701.0)
-height = applyViewScale(554.0)
-colCount = 3
-rowCount = 3
+ff = FlexForm("Set Table Dimensions", components)
+ff.show()
+
+width = applyViewScale(float(ff.values['width']))
+height = applyViewScale(float(ff.values['height']))
+colCount = int(ff.values['colCount'])
+rowCount = int(ff.values['rowCount'])
 rowHeight = height/rowCount
-fieldColWidth = applyViewScale(50.0)
-fieldRowCount = 4
-fieldRowHeight = applyViewScale(10.0)
+fieldColWidth = applyViewScale(float(ff.values['fieldColWidth']))
+fieldRowCount = int(ff.values['fieldRowCount'])
+fieldRowHeight = applyViewScale(float(ff.values['fieldRowHeight']))
 colWidth = (width-fieldColWidth)/colCount
 
 def frange(start, count, step=1.0):
@@ -54,7 +76,6 @@ def createHlines():
     revit.doc.Create.NewDetailCurveArray(revit.active_view, cArray) 
 
 
-
 def createVlines():
     cArray = DB.CurveArray()
     vn = direction(hline)
@@ -67,32 +88,9 @@ def createVlines():
 
     revit.doc.Create.NewDetailCurveArray(revit.active_view, cArray) 
 
-# def createHlines():
-#     cArray = DB.CurveArray()
-#     vn = direction(vline)
-#     fValue = list(frange(0, fieldRowCount+1, fieldRowHeight))
-#     rValue = list(frange(0, rowCount, rowHeight))
-#     for i in fValue:
-#         line = hline.CreateTransformed(DB.Transform.CreateTranslation(vn*i))
-#         for j in rValue:
-#             rowline = line.CreateTransformed(DB.Transform.CreateTranslation(vn*j))
-#             cArray.Append(rowline)
-#     revit.doc.Create.NewDetailCurveArray(revit.active_view, cArray) 
 
-
-# def createVlines():
-#     cArray = DB.CurveArray()
-#     vn = direction(hline)
-#     c1 = vn*fieldColWidth
-#     c2 = vn*colWidth
-#     cArray.Append(vline)
-#     # revit.doc.Create.NewDetailCurve(revit.active_view, vline)
-#     for i in range(colCount+1):
-#         t = DB.Transform.CreateTranslation(c1 + c2 *i)
-#         line = vline.CreateTransformed(t)
-#         cArray.Append(line)
-#     revit.doc.Create.NewDetailCurveArray(revit.active_view, cArray) 
-
-with revit.Transaction("Create Parallel Section"):
-    createVlines()
-    createHlines()
+if ff.values:
+    # main()
+    with revit.Transaction("Create Parallel Section"):
+        createVlines()
+        createHlines()
