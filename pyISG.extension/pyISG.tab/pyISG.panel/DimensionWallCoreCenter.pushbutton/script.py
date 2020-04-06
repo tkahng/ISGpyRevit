@@ -14,7 +14,7 @@ Quick dimension selected elements
 Warning : Full support for line base elements only (eg. pipes, walls, lines, grids). 
 Don't currently fully work with family instance.
 """
-__title__ = "QuickDimension"
+__title__ = "DimensionWallCoreCenter"
 __author__ = "Cyril Waechter"
 
 doc = revit.doc
