@@ -80,9 +80,14 @@ def is_inside_room(curveloop, room):
             return False
     return True
 
-
+@rpw.db.Transaction.ensure('create finish walls')
 def create_finish_wall(room, wall_type, wall_height):
     offset_distance = wall_type.parameters['Width'].AsDouble() * 0.5
+    roomname = str(room.parameters['Name'].value)
+    roomnum = room.parameters['Number']
+    tag1 = 'ROOMFIN'
+    tag2 = 'WALL'
+    tag = ','.join([tag1,tag2,roomname])
     boundary_loops = get_boundaries(room)
     # print(boundary_loops)
     for boundary in boundary_loops:
@@ -94,36 +99,45 @@ def create_finish_wall(room, wall_type, wall_height):
             offset_curveloop = CurveLoop.CreateViaOffset(curveloop, -offset_distance,
                                                          curveloop.GetPlane().Normal)
         new_walls = []
-        with rpw.db.Transaction('Create Finish Wall'):
-            for curve in offset_curveloop:
-                new_wall = Wall.Create(doc, curve, wall_type.Id, room.LevelId,
-                                       wall_height/304.8, 0, False, False)
-                new_wall.LookupParameter('ROOMFIN').Set('wall')
-                new_walls.append(new_wall)
-        with rpw.db.Transaction('Join old-new walls'):
-            for idx, new_wall in enumerate(new_walls):
-                old_wall = doc.GetElement(boundary[idx].ElementId)
-                if old_wall:
-                    try:
-                        JoinGeometryUtils.JoinGeometry(doc, old_wall, new_wall)
-                    except Exception as e:
-                        print(e)
-        with rpw.db.Transaction('Delete short walls'):
-            for new_wall in new_walls:
-                length = new_wall.LookupParameter('Length').AsDouble() * 304.8
-                if length < 50:
-                    doc.Delete(new_wall.Id)
+    # with rpw.db.Transaction('Create Finish Wall'):
+        for curve in offset_curveloop:
+            new_wall = Wall.Create(doc, curve, wall_type.Id, room.LevelId,
+                                    wall_height/304.8, 0, False, False)
+            new_wall.LookupParameter('DOCTAG').Set(tag)
+            new_walls.append(new_wall)
+    # with rpw.db.Transaction('Join old-new walls'):
+        for idx, new_wall in enumerate(new_walls):
+            old_wall = doc.GetElement(boundary[idx].ElementId)
+            if old_wall:
+                try:
+                    JoinGeometryUtils.JoinGeometry(doc, old_wall, new_wall)
+                except Exception as e:
+                    print(e)
+    # with rpw.db.Transaction('Delete short walls'):
+        for new_wall in new_walls:
+            length = new_wall.LookupParameter('Length').AsDouble() * 304.8
+            if length < 50:
+                doc.Delete(new_wall.Id)
 
 
-def main():
-    try:
-        wall_type, wall_height = form()
-        rooms = select_objects_by_category('Rooms')
-        for room in rooms:
-            create_finish_wall(room, wall_type, wall_height)
-    except Exception as e:
-        print(e)
+try:
+    wall_type, wall_height = form()
+    rooms = select_objects_by_category('Rooms')
+    for room in rooms:
+        create_finish_wall(room, wall_type, wall_height)
+except Exception as e:
+    print(e)
 
 
-if __name__ == '__main__':
-    main()
+# def main():
+#     try:
+#         wall_type, wall_height = form()
+#         rooms = select_objects_by_category('Rooms')
+#         for room in rooms:
+#             create_finish_wall(room, wall_type, wall_height)
+#     except Exception as e:
+#         print(e)
+
+
+# if __name__ == '__main__':
+#     main()
