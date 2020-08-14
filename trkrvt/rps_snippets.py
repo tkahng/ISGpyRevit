@@ -1,5 +1,10 @@
 from pyrevit import revit, DB
 
+
+import rpw
+from rpw import doc, uidoc, DB, UI, db, ui
+
+
 revit.db.query.get_param_value
 
 cws = [w for w in wc if w.WallType.Kind.ToString() == 'Curtain']

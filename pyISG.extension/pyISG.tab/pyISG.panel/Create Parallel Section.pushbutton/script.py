@@ -12,9 +12,9 @@ output = script.get_output()
 
 def create_section(el, section_type):
     # ensure wall is straight
-    # curve = wall.Location.Curve
+    curve = wall.Location.Curve
     # determine section box
-    # curve_transform = curve.ComputeDerivatives(0.5, True)
+    curve_transform = curve.ComputeDerivatives(0.5, True)
     
     origin = el.Location.Point
     # wall_direction = curve_transform.BasisX.Normalize()  # type: XYZ

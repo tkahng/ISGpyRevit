@@ -51,19 +51,27 @@ def curveloop_from_boundary(boundary):
 
 
 def form():
+    # floor_types = rpw.db.Collector(of_category='OST_Floors', is_type=True,
+    #                               where=lambda x: x.GetParameters('Thickness')).get_elements()
     wall_types = rpw.db.Collector(of_category='Walls', is_type=True,
                                   where=lambda x: x.GetParameters('Width')).get_elements()
-    components = [Label('Finish wall type:'),
-                  ComboBox('wall_type_id',
-                           {wt.parameters['Type Name'].AsString(): wt.Id for wt in wall_types}),
-                  Label('Finish wall height (mm):'),
-                  TextBox('wall_height'),
-                  Button('Create Finish Walls')]
+    components = [
+                    # Label('Finish floor type:'),
+                    # ComboBox('floor_type_id',
+                    #         {DB.Element.Name.GetValue(ft): ft for ft in floor_types}),
+                    Label('Finish wall type:'),
+                    ComboBox('wall_type_id',
+                            {wt.parameters['Type Name'].AsString(): wt.Id for wt in wall_types}),
+                    Label('Finish wall height (mm):'),
+                    TextBox('wall_height'),
+                    Button('Create Finish Walls')
+                  ]
 
     ff = FlexForm('Create Finish Walls', components)
     ff.show()
     if ff.values['wall_type_id'] and ff.values['wall_height']:
         try:
+            # floor_type = rpw.db.Element(ff.values['floor_type_id'])
             wall_type = rpw.db.Element.from_id(ff.values['wall_type_id'])
             wall_height = float(ff.values['wall_height'])
             return wall_type, wall_height
@@ -80,10 +88,28 @@ def is_inside_room(curveloop, room):
             return False
     return True
 
+
+# @rpw.db.Transaction.ensure('Make Floor')
+# def make_floor(floor_type_id, boundary, level_id):
+#     floor_curves = DB.CurveArray()
+#     for boundary_segment in boundary:
+#         try:
+#             floor_curves.Append(boundary_segment.Curve)       # 2015, dep 2016
+#         except AttributeError:
+#             floor_curves.Append(boundary_segment.GetCurve())  # 2017
+
+#     floorType = doc.GetElement(floor_type_id)
+
+#     level = doc.GetElement(level_id)
+#     normal_plane = DB.XYZ.BasisZ
+#     doc.Create.NewFloor(floor_curves, floorType, level, False, normal_plane)
+
+
 # @rpw.db.Transaction.ensure('create finish walls')
 def create_finish_wall(room, wall_type, wall_height):
     offset_distance = wall_type.parameters['Width'].AsDouble() * 0.5
     boundary_loops = get_boundaries(room)
+    # new_floors = make_floor(floor_type.Id, boundary_loops, room.LevelId)
     # print(boundary_loops)
     for boundary in boundary_loops:
         curveloop = curveloop_from_boundary(boundary)
@@ -94,13 +120,18 @@ def create_finish_wall(room, wall_type, wall_height):
             offset_curveloop = CurveLoop.CreateViaOffset(curveloop, -offset_distance,
                                                          curveloop.GetPlane().Normal)
         new_walls = []
+        # new_floors = make_floor(floor_type.Id, )
         # with rpw.db.TransactionGroup('run def'):
 
         with rpw.db.Transaction('Create Finish Wall'):
             for curve in offset_curveloop:
                 new_wall = Wall.Create(doc, curve, wall_type.Id, room.LevelId,
                                     wall_height/304.8, 0, False, False)
+                rpw.db.Wall(new_wall).parameters['Room Bounding'] = False
+                # print new_wall.LookupParameter('Room Bounding').AsString()
+                # new_wall.parameters['Room Bounding'] = False
                 new_walls.append(new_wall)
+
         with rpw.db.Transaction('Join old-new walls'):
             for idx, new_wall in enumerate(new_walls):
                 old_wall = doc.GetElement(boundary[idx].ElementId)
@@ -114,6 +145,13 @@ def create_finish_wall(room, wall_type, wall_height):
                 length = new_wall.LookupParameter('Length').AsDouble() * 304.8
                 if length < 50:
                     doc.Delete(new_wall.Id)
+
+        # with rpw.db.Transaction('Create finish floor'):
+
+        #     for curve in offset_curveloop:
+        #         new_wall = Wall.Create(doc, curve, wall_type.Id, room.LevelId,
+        #                             wall_height/304.8, 0, False, False)
+        #         new_walls.append(new_wall)
 
 
 # try:
