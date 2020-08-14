@@ -53,9 +53,12 @@ def make_floor(new_floor):
             floor_curves.Append(boundary_segment.GetCurve())  # 2017
 
     floorType = doc.GetElement(new_floor.floor_type_id)
+    offset = rpw.db.Element(new_floor.floor_type_id).parameters['Thickness'].AsDouble()
     level = doc.GetElement(new_floor.level_id)
     normal_plane = DB.XYZ.BasisZ
-    doc.Create.NewFloor(floor_curves, floorType, level, False, normal_plane)
+    floor = doc.Create.NewFloor(floor_curves, floorType, level, False, normal_plane)
+    rpw.db.Element(floor).parameters['Height Offset From Level'] = offset
+    return floor
 
 
 NewFloor = namedtuple('NewFloor', ['floor_type_id', 'boundary', 'level_id'])
