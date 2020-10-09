@@ -7,20 +7,18 @@ clr.AddReferenceByPartialName("PresentationFramework")
 clr.AddReferenceByPartialName('System')
 clr.AddReferenceByPartialName('System.Windows.Forms')
 
-from Autodesk.Revit import DB
-from Autodesk.Revit import UI
-# import pyrevit
-# import revitron
-# from revitron import _
-# from rpw import db, ui
+# from Autodesk.Revit import DB
+# from Autodesk.Revit import UI
+
+from rpw import revit, db, ui, DB, UI
 
 # creates variables for selected elements in global scope
 # e1, e2, ...
 max_elements = 5
 gdict = globals()
-uidoc = __revit__.ActiveUIDocument
+uidoc = revit.uidoc
 if uidoc:
-    doc = __revit__.ActiveUIDocument.Document
+    doc = revit.doc
     selection = [doc.GetElement(x) for x in uidoc.Selection.GetElementIds()]
     for idx, el in enumerate(selection):
         if idx < max_elements:
