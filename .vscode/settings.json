@@ -1,10 +1,10 @@
 {
     "python.linting.enabled": false,
-    "python.autoComplete.extraPaths": [
-        "..\\ironpython-stubs\\release\\stubs.min", 
-        "C:\\Users\\인시공현장PC\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib",
-        "C:\\Users\\Tchunoo\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib"
-    ],
+    // "python.autoComplete.extraPaths": [
+    //     "..\\ironpython-stubs\\release\\stubs.min", 
+    //     "C:\\Users\\인시공현장PC\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib",
+    //     "C:\\Users\\Tchunoo\\AppData\\Roaming\\pyRevit-Master\\pyrevitlib"
+    // ],
     "python.terminal.activateEnvInCurrentTerminal": true,
     "python.languageServer": "Microsoft"
 }
