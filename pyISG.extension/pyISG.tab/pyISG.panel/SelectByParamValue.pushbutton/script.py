@@ -22,8 +22,8 @@ selected_category = \
         message='Pick only elements of type:'
     )
 
-scope = revitron.Filter().noTypes().byCategory(selected_category).getElements()
-
+# scope = revitron.Filter().noTypes().byCategory(selected_category).getElements()
+scope = db.Collector(of_category=selected_category, is_type=False).get_elements()
 
 parameters = revitron.ParameterNameList().get()
 
@@ -33,8 +33,10 @@ selected_param = \
         message='Pick only elements of type:'
     )
 
-vals = list(set(map(lambda x: revitron.Parameter(x, selected_param).getValueString(), scope)))
+# vals = list(set(map(lambda x: revitron.Parameter(x, selected_param).getValueString(), scope)))
+vals = list(set(map(lambda x: x.parameters[selected_param].value_string, scope)))
 vals.append('*other')
+
 
 selected_value = \
     forms.CommandSwitchWindow.show(
@@ -51,6 +53,7 @@ if selected_value == '*other':
             title='Tag Manager'
         )
 
-ids = revitron.Filter(list(scope)).noTypes().byStringContains(selected_param, selected_value).getElementIds()
+# ids = revitron.Filter(list(scope)).noTypes().byStringContains(selected_param, selected_value).getElementIds()
+col = db.Collector(scope, of_category=selected_category, where=lambda x: selected_value in x.parameters[selected_param].value_string)
 
 revitron.Selection.set(ids)
