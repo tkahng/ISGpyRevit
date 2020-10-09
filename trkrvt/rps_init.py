@@ -9,6 +9,10 @@ clr.AddReferenceByPartialName('System.Windows.Forms')
 
 from Autodesk.Revit import DB
 from Autodesk.Revit import UI
+# import pyrevit
+# import revitron
+# from revitron import _
+# from rpw import db, ui
 
 # creates variables for selected elements in global scope
 # e1, e2, ...
